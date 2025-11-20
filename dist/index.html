@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>绝区零日程表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,700;0,900;1,400;1,900&display=swap');
+      
+      body {
+        background-color: #050505;
+        font-family: 'Barlow', 'Microsoft YaHei', 'SimHei', sans-serif;
+        overflow: hidden; /* Prevent scrolling on body, handle in app */
+      }
+      
+      /* Custom Scrollbar */
+      
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #111; 
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #333; 
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555; 
+      }
+      
+      /* Utility for hiding scrollbar but keeping functionality */
+      
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .no-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              zzz: {
+                black: '#080808',
+                dark: '#141414',
+                panel: '#1e1e1e',
+                card: '#2b2b2b',
+                orange: '#ff5500',
+                green: '#ccff00',
+                yellow: '#ffcc00',
+                blue: '#00ccff',
+                dim: '#888888',
+              }
+            },
+            fontFamily: {
+              sans: ['Barlow', 'Microsoft YaHei', 'sans-serif'],
+            },
+            backgroundImage: {
+              'grid-pattern': 'repeating-linear-gradient(45deg, #1a1a1a 0, #1a1a1a 2px, #141414 2px, #141414 8px)',
+            }
+          }
+        }
+      }
+    </script>
+
+<link rel="stylesheet" href="/index.css">
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-CMyMydjC.js"></script>
+</head>
+  <body>
+    <div id="root"></div>
+</body>
+</html>
