@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const CRTOverlay: React.FC = () => (
-  <div className="pointer-events-none fixed inset-0 z-50 h-full w-full select-none">
+  <div className="hidden md:block pointer-events-none fixed inset-0 z-50 h-full w-full select-none">
     {/* Scanlines */}
     <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px]" />
     {/* Vignette and glow */}

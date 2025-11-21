@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Task } from '../types';
-import { Check, Play, Flame, Clock, AlertCircle } from 'lucide-react';
+import { Check, Play, Flame, Clock, AlertCircle, Trash2 } from 'lucide-react';
 
 interface TaskCardProps {
   item: Task;
   type: 'daily' | 'target' | 'training' | 'challenge';
-  variant?: 'default' | 'compact'; // Added variant prop
+  variant?: 'default' | 'compact'; 
   onEdit: (item: Task) => void;
   onAction: (item: Task) => void;
+  onDelete: (item: Task) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'default', onEdit, onAction }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'default', onEdit, onAction, onDelete }) => {
   const isCompleted = item.completed;
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isUrgent, setIsUrgent] = useState(false);
@@ -18,6 +19,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'defau
   const handleAction = (e: React.MouseEvent) => {
     e.stopPropagation();
     onAction(item);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Critical: Stop click from triggering card edit
+    onDelete(item);
   };
 
   // Countdown Logic
@@ -40,12 +46,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'defau
         if (days > 0) setTimeLeft(`${days}d ${hours}h`);
         else setTimeLeft(`${hours}h ${minutes}m`);
         
-        setIsUrgent(days < 1); // Urgent if less than 1 day
+        setIsUrgent(days < 1); 
       }
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 60000); // Update every minute
+    const interval = setInterval(updateTimer, 60000); 
     return () => clearInterval(interval);
   }, [item.time, type, isCompleted]);
 
@@ -69,36 +75,45 @@ export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'defau
 
   // Compact styling overrides
   const isCompact = variant === 'compact';
-  // Made compact cards smaller as requested
-  const cardWidthClass = isCompact ? 'min-w-[180px] w-[180px] min-h-[120px]' : 'min-h-[180px]';
-  const titleSizeClass = isCompact ? 'text-xs mb-1 leading-tight' : 'text-lg mb-2 leading-tight';
-  const paddingClass = isCompact ? 'p-2.5' : 'p-4';
+  // Ultra-compact dimensions for mobile to absolutely prevent vertical shifting
+  const cardWidthClass = isCompact ? 'min-w-[120px] w-[120px] min-h-[70px] md:min-w-[180px] md:w-[180px] md:min-h-[120px]' : 'min-h-[140px] md:min-h-[170px]';
+  const titleSizeClass = isCompact ? 'text-[9px] md:text-xs mb-0.5 leading-tight' : 'text-base md:text-lg mb-1.5 leading-tight';
+  const paddingClass = isCompact ? 'p-1.5 md:p-2' : 'p-3 md:p-4';
 
   return (
     <div
       onClick={() => onEdit(item)}
       className={`
-        group relative flex cursor-pointer flex-col justify-between rounded-2xl border-[3px] border-black transition-all hover:-translate-y-1
+        group relative flex cursor-pointer flex-col justify-between rounded-xl md:rounded-2xl border-[2px] md:border-[3px] border-black transition-all hover:-translate-y-1 overflow-hidden
         ${cardWidthClass} ${paddingClass}
         ${isCompleted 
             ? 'bg-[#1a1a1a] border-[#333] opacity-80' 
-            : 'bg-zzz-card shadow-[5px_5px_0_rgba(0,0,0,0.5)] hover:border-[#666] hover:shadow-[7px_7px_0_rgba(0,0,0,0.5)]'
+            : 'bg-zzz-card shadow-[3px_3px_0_rgba(0,0,0,0.5)] md:shadow-[5px_5px_0_rgba(0,0,0,0.5)] hover:border-[#666] hover:shadow-[5px_5px_0_rgba(0,0,0,0.5)]'
         }
       `}
     >
+      {/* Delete Button - High Z-Index to ensure clickability */}
+      <button 
+        onClick={handleDelete}
+        className="absolute top-0.5 right-0.5 md:top-1.5 md:right-1.5 z-50 text-[#666] hover:text-red-500 transition-colors p-1.5 rounded-full hover:bg-black/40"
+        title="删除"
+      >
+        <Trash2 size={isCompact ? 10 : 16} />
+      </button>
+
       {/* Completed Stamp */}
       {isCompleted && (
-        <div className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 rounded border-4 border-[#444] font-black text-[#444] z-10 whitespace-nowrap tracking-widest opacity-60 ${isCompact ? 'text-sm px-2 border-2' : 'text-3xl px-4'}`}>
+        <div className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 rounded border-2 md:border-4 border-[#444] font-black text-[#444] z-10 whitespace-nowrap tracking-widest opacity-60 ${isCompact ? 'text-[8px] px-1 border' : 'text-2xl md:text-3xl px-4'}`}>
           COMPLETED
         </div>
       )}
 
       <div>
         {/* Header Line */}
-        <div className="mb-2 flex items-center justify-between text-xs font-bold">
-            <div className="flex items-center gap-1.5">
+        <div className="mb-0.5 md:mb-1 flex items-center justify-between text-xs font-bold pr-4">
+            <div className="flex items-center gap-1">
                 <div className={`rounded-full shadow-[0_0_5px] 
-                    ${isCompact ? 'h-1.5 w-1.5' : 'h-2 w-2'}
+                    ${isCompact ? 'h-1 w-1 md:h-1.5 md:w-1.5' : 'h-2 w-2'}
                     ${isCompleted ? 'bg-gray-500' : 
                       type === 'daily' ? 'bg-zzz-yellow shadow-zzz-yellow' : 
                       type === 'target' ? 'bg-zzz-green shadow-zzz-green' :
@@ -106,38 +121,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'defau
                       'bg-red-500 shadow-red-500'
                     }`} 
                 />
-                <span className={`uppercase tracking-wider ${isCompleted ? 'text-gray-500' : 'text-zzz-dim'} ${isCompact ? 'text-[9px]' : ''}`}>{topInfo}</span>
+                <span className={`uppercase tracking-wider ${isCompleted ? 'text-gray-500' : 'text-zzz-dim'} ${isCompact ? 'text-[7px] md:text-[9px]' : 'text-[10px] md:text-xs'}`}>{topInfo}</span>
             </div>
-            
-            {/* Countdown Badge */}
-            {timeLeft && !isCompleted && (
-                <div className={`flex items-center gap-1 rounded px-1.5 py-0.5 font-mono 
-                    ${isCompact ? 'text-[8px]' : 'text-[10px]'}
-                    ${isUrgent ? 'bg-red-950 text-red-500 animate-pulse' : 'bg-[#111] text-zzz-blue'}`}>
-                    <Clock size={isCompact ? 8 : 10} />
-                    {timeLeft}
-                </div>
-            )}
         </div>
         
         <h3 className={`font-black drop-shadow-sm line-clamp-2 ${titleSizeClass} ${isCompleted ? 'text-[#666] line-through' : 'text-white'}`}>
             {item.title}
         </h3>
         
+        {/* Hide desc completely on compact mobile to save space */}
         {!isCompact && (
-            <p className={`text-xs font-medium line-clamp-3 ${isCompleted ? 'text-[#444]' : 'text-[#888]'}`}>
-                {item.desc || 'No description provided...'}
+            <p className={`text-[10px] md:text-xs font-medium line-clamp-2 md:line-clamp-3 ${isCompleted ? 'text-[#444]' : 'text-[#888]'}`}>
+                {item.desc || 'No description...'}
             </p>
         )}
         
-        <div className={`w-full border-b-2 border-dashed border-[#333] ${isCompact ? 'my-1.5' : 'my-3'}`} />
+        {/* Separator Line */}
+        <div className={`w-full border-b-2 border-dashed border-[#333] ${isCompact ? 'my-0.5 opacity-30' : 'my-2 md:my-3'}`} />
       </div>
 
       <div className="flex items-end justify-between">
         <div>
-          <div className={`font-bold uppercase text-[#555] ${isCompact ? 'text-[8px] mb-0' : 'text-[10px] mb-0.5'}`}>Reward</div>
-          <div className={`flex items-center gap-1 font-black italic ${isCompleted ? 'text-[#555]' : 'text-white'} ${isCompact ? 'text-xs' : 'text-lg'}`}>
-            <Flame size={isCompact ? 10 : 16} className={isCompleted ? 'text-[#444]' : 'text-zzz-orange fill-zzz-orange'} />
+          <div className={`font-bold uppercase text-[#555] ${isCompact ? 'text-[6px] md:text-[8px] mb-0' : 'text-[9px] md:text-[10px] mb-0.5'}`}>Reward</div>
+          <div className={`flex items-center gap-1 font-black italic ${isCompleted ? 'text-[#555]' : 'text-white'} ${isCompact ? 'text-[9px] md:text-xs' : 'text-base md:text-lg'}`}>
+            <Flame size={isCompact ? 8 : 14} className={isCompleted ? 'text-[#444]' : 'text-zzz-orange fill-zzz-orange'} />
             {item.reward}
           </div>
         </div>
@@ -145,16 +152,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ item, type, variant = 'defau
         {type === 'training' ? (
           <button
             onClick={handleAction}
-            className="flex items-center gap-1 rounded-full border border-zzz-blue bg-[#000] px-4 py-2 text-xs font-black italic text-zzz-blue shadow-inner transition-all hover:bg-zzz-blue hover:text-black hover:shadow-[0_0_15px_rgba(0,204,255,0.5)]"
+            className="flex items-center gap-1 rounded-full border border-zzz-blue bg-[#000] px-1.5 py-0.5 md:px-4 md:py-2 text-[8px] md:text-xs font-black italic text-zzz-blue shadow-inner transition-all hover:bg-zzz-blue hover:text-black hover:shadow-[0_0_15px_rgba(0,204,255,0.5)]"
           >
-             DEPLOY <Play size={10} fill="currentColor" />
+             DEPLOY <Play size={6} className="md:w-3 md:h-3" fill="currentColor" />
           </button>
         ) : (
           <button
             onClick={handleAction}
             className={`
               rounded-full border font-black italic shadow-inner transition-all
-              ${isCompact ? 'px-2.5 py-0.5 text-[9px]' : 'px-5 py-2 text-xs'}
+              ${isCompact ? 'px-2 py-0.5 text-[8px] md:text-[9px]' : 'px-4 py-1.5 md:px-5 md:py-2 text-[10px] md:text-xs'}
               ${isCompleted 
                 ? 'border-[#333] bg-transparent text-[#555] hover:text-[#888]' 
                 : 'border-zzz-green bg-black text-zzz-green hover:bg-zzz-green hover:text-black hover:shadow-[0_0_15px_rgba(204,255,0,0.5)]'

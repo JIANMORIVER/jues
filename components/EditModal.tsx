@@ -51,14 +51,14 @@ export const EditModal: React.FC<EditModalProps> = ({ isOpen, task, type, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200 p-4">
-      <div className="relative flex max-h-[90vh] w-full md:w-[650px] flex-col overflow-hidden rounded-[20px] border-2 border-[#333] bg-[#0a0a0a] shadow-[0_0_80px_rgba(0,0,0,1)]">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative flex max-h-[90vh] w-[650px] flex-col overflow-hidden rounded-[20px] border-2 border-[#333] bg-[#0a0a0a] shadow-[0_0_80px_rgba(0,0,0,1)]">
         
         {/* Decorative CRT Lines */}
         <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.2)_2px,rgba(0,0,0,0.2)_4px)] z-0 opacity-20" />
 
         {/* Header */}
-        <div className="relative z-10 flex items-center justify-between border-b border-[#333] bg-[#111] px-4 md:px-6 py-4">
+        <div className="relative z-10 flex items-center justify-between border-b border-[#333] bg-[#111] px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="h-3 w-3 animate-pulse rounded-full bg-zzz-green shadow-[0_0_10px_#ccff00]" />
             <span className="font-mono text-lg font-black tracking-widest text-white italic">
@@ -69,7 +69,7 @@ export const EditModal: React.FC<EditModalProps> = ({ isOpen, task, type, onClos
         </div>
 
         {/* Body */}
-        <div className="relative z-10 flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        <div className="relative z-10 flex-1 overflow-y-auto p-8 custom-scrollbar">
           
           <div className="grid grid-cols-1 gap-6">
             {/* Title & Desc */}
@@ -143,7 +143,7 @@ export const EditModal: React.FC<EditModalProps> = ({ isOpen, task, type, onClos
             )}
 
             {/* Parameters Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase text-[#666]">Reward</label>
                   <div className="flex items-center rounded bg-[#111] px-3 py-2 border border-[#333]">
@@ -208,7 +208,7 @@ export const EditModal: React.FC<EditModalProps> = ({ isOpen, task, type, onClos
                     />
                     <button 
                       onClick={() => removeSubtask(idx)}
-                      className="opacity-100 md:opacity-0 transition-opacity group-hover:opacity-100 text-[#444] hover:text-red-500"
+                      className="opacity-0 transition-opacity group-hover:opacity-100 text-[#444] hover:text-red-500"
                     >
                       <Trash2 size={14} />
                     </button>
