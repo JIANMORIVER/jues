@@ -1,11 +1,16 @@
+
 import React from 'react';
 
 export const CRTOverlay: React.FC = () => (
-  <div className="hidden md:block pointer-events-none fixed inset-0 z-50 h-full w-full select-none">
-    {/* Scanlines */}
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px]" />
-    {/* Vignette and glow */}
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_60%,black_100%)]" />
+  <div 
+    className="hidden md:block pointer-events-none fixed inset-0 z-50 h-full w-full select-none"
+  >
+    <div className="relative h-full w-full" style={{ display: 'var(--overlay-crt)' }}>
+        {/* Scanlines */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px]" />
+        {/* Vignette and glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_60%,black_100%)]" />
+    </div>
   </div>
 );
 
@@ -43,13 +48,13 @@ export const SpiralBinding: React.FC = () => {
 export const SideTag: React.FC<{ active: boolean }> = ({ active }) => (
   <div className={`hidden md:block absolute -left-[18px] top-[40px] z-0 transition-all duration-300 ${active ? '-translate-x-2' : 'translate-x-0'}`}>
     {/* Tag Body */}
-    <div className="flex h-[220px] w-[50px] flex-col items-center justify-center rounded-l-xl border-2 border-r-0 border-[#111] bg-zzz-orange shadow-lg relative overflow-hidden">
+    <div className="flex h-[220px] w-[50px] flex-col items-center justify-center rounded-l-xl border-2 border-r-0 border-zzz-border bg-zzz-orange shadow-lg relative overflow-hidden">
       {/* Decorative lines */}
       <div className="absolute top-2 h-16 w-[2px] bg-black/20" />
       <div className="absolute bottom-2 h-16 w-[2px] bg-black/20" />
       
       {/* Text */}
-      <span className="rotate-180 text-xl font-black italic tracking-[4px] text-[#111] [writing-mode:vertical-rl] select-none">
+      <span className="rotate-180 text-xl font-black italic tracking-[4px] text-zzz-text-inv [writing-mode:vertical-rl] select-none">
         SCHEDULE
       </span>
 
