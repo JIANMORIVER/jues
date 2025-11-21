@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
@@ -8,10 +9,30 @@
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,700;0,900;1,400;1,900&display=swap');
       
+      :root {
+        /* Default Theme (Zenless) */
+        --color-zzz-black: #080808;
+        --color-zzz-dark: #141414;
+        --color-zzz-panel: #1e1e1e;
+        --color-zzz-card: #2b2b2b;
+        --color-zzz-orange: #ff5500;
+        --color-zzz-green: #ccff00;
+        --color-zzz-yellow: #ffcc00;
+        --color-zzz-blue: #00ccff;
+        --color-zzz-dim: #888888;
+        --color-zzz-text: #ffffff;
+        --color-zzz-text-inv: #000000;
+        --color-zzz-border: #000000;
+        --bg-grid-pattern: repeating-linear-gradient(45deg, #1a1a1a 0, #1a1a1a 2px, #141414 2px, #141414 8px);
+        --bg-body: #050505;
+        --overlay-crt: block;
+      }
+
       body {
-        background-color: #050505;
+        background-color: var(--bg-body);
         font-family: 'Barlow', 'Microsoft YaHei', 'SimHei', sans-serif;
         overflow: hidden; /* Prevent scrolling on body, handle in app */
+        transition: background-color 0.3s ease;
       }
       
       /* Custom Scrollbar */
@@ -19,14 +40,14 @@
         width: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: #111; 
+        background: var(--color-zzz-dark); 
       }
       ::-webkit-scrollbar-thumb {
-        background: #333; 
+        background: var(--color-zzz-card); 
         border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #555; 
+        background: var(--color-zzz-dim); 
       }
 
       /* Utility for hiding scrollbar but keeping functionality */
@@ -44,22 +65,25 @@
           extend: {
             colors: {
               zzz: {
-                black: '#080808',
-                dark: '#141414',
-                panel: '#1e1e1e',
-                card: '#2b2b2b',
-                orange: '#ff5500',
-                green: '#ccff00',
-                yellow: '#ffcc00',
-                blue: '#00ccff',
-                dim: '#888888',
+                black: 'var(--color-zzz-black)',
+                dark: 'var(--color-zzz-dark)',
+                panel: 'var(--color-zzz-panel)',
+                card: 'var(--color-zzz-card)',
+                orange: 'var(--color-zzz-orange)',
+                green: 'var(--color-zzz-green)',
+                yellow: 'var(--color-zzz-yellow)',
+                blue: 'var(--color-zzz-blue)',
+                dim: 'var(--color-zzz-dim)',
+                text: 'var(--color-zzz-text)',
+                'text-inv': 'var(--color-zzz-text-inv)',
+                border: 'var(--color-zzz-border)',
               }
             },
             fontFamily: {
               sans: ['Barlow', 'Microsoft YaHei', 'sans-serif'],
             },
             backgroundImage: {
-              'grid-pattern': 'repeating-linear-gradient(45deg, #1a1a1a 0, #1a1a1a 2px, #141414 2px, #141414 8px)',
+              'grid-pattern': 'var(--bg-grid-pattern)',
             }
           }
         }

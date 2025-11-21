@@ -1,5 +1,16 @@
 import { AppData } from './types';
 
+const today = new Date();
+const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+const dayAfter = new Date(today); dayAfter.setDate(today.getDate() + 2);
+
+// Helper to set time
+const setTime = (date: Date, h: number, m: number) => {
+  const d = new Date(date);
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+
 export const INITIAL_DATA: AppData = {
   score: 0,
   daily: [
@@ -62,7 +73,7 @@ export const INITIAL_DATA: AppData = {
       id: 301, 
       title: "和妮可逛街", 
       desc: "光映广场见面。", 
-      time: "2025-11-23T14:00", 
+      time: setTime(dayAfter, 14, 0), 
       reward: 200, 
       completed: false, 
       importance: true,
@@ -73,7 +84,7 @@ export const INITIAL_DATA: AppData = {
       id: 302, 
       title: "零号空洞探险", 
       desc: "周五晚上的探险活动。", 
-      time: "2025-11-21T20:00", 
+      time: setTime(today, 20, 0), 
       reward: 500, 
       completed: false, 
       importance: true,
