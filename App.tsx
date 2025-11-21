@@ -5,6 +5,7 @@ import { INITIAL_DATA } from './constants';
 import { CRTOverlay, Screw, SpiralBinding, SideTag } from './components/LayoutElements';
 import { TaskCard } from './components/TaskCard';
 import { EditModal } from './components/EditModal';
+import { MiniStudio } from './components/MiniStudio';
 import { Plus, X, Zap, Calendar, Flame, AlertTriangle, Trash, CheckCircle2, ArrowRight, LayoutGrid, Star, Clock, Briefcase, Archive, Trophy, CalendarDays, Columns, CalendarRange, List, Target, Palette, Monitor, Sun, Cpu } from 'lucide-react';
 
 // Helper types for Challenge Matrix
@@ -94,8 +95,8 @@ function App() {
   // Deploy Modal State
   const [deployItem, setDeployItem] = useState<Task | null>(null);
 
-  // Battery Toast State
-  const [batteryToasts, setBatteryToasts] = useState<{id: number}[]>([]);
+  // Mini Studio State
+  const [isMiniStudioOpen, setMiniStudioOpen] = useState(false);
 
   useEffect(() => {
     setSidebarVisible(currentTab === 'daily');
@@ -309,11 +310,7 @@ function App() {
   };
 
   const handleBatteryClick = () => {
-      const id = Date.now();
-      setBatteryToasts(prev => [...prev, { id }]);
-      setTimeout(() => {
-          setBatteryToasts(prev => prev.filter(t => t.id !== id));
-      }, 1000);
+      setMiniStudioOpen(true);
   };
 
   // --- Render Helpers ---
@@ -702,14 +699,6 @@ function App() {
                   >
                       <Zap size={18} className="fill-currentColor text-zzz-text hover:text-zzz-green transition-colors" />
                   </button>
-                  {batteryToasts.map((toast) => (
-                      <div 
-                          key={toast.id}
-                          className="absolute right-0 -bottom-10 pointer-events-none animate-out fade-out slide-out-to-bottom-4 duration-1000 whitespace-nowrap font-black italic text-zzz-green text-sm bg-zzz-black px-2 py-1 rounded border border-zzz-green shadow-[0_0_10px_#ccff00] z-50"
-                      >
-                          电量+1
-                      </div>
-                  ))}
                </div>
                
                <button onClick={() => setThemeModalOpen(true)} className="flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 border-zzz-border bg-zzz-panel text-zzz-text shadow-[0_4px_0_var(--color-zzz-border)] active:translate-y-1 active:shadow-none">
@@ -732,14 +721,6 @@ function App() {
                 >
                     <Zap size={20} fill="currentColor" />
                 </button>
-                {batteryToasts.map((toast) => (
-                    <div 
-                        key={toast.id}
-                        className="absolute right-0 -top-8 pointer-events-none animate-out fade-out slide-out-to-top-4 duration-1000 whitespace-nowrap font-black italic text-zzz-green text-sm bg-zzz-black px-2 py-1 rounded border border-zzz-green shadow-[0_0_10px_#ccff00]"
-                    >
-                        电量+1
-                    </div>
-                ))}
              </div>
 
              <button 
@@ -1099,6 +1080,15 @@ function App() {
                     </div>
                 </div>
             </div>
+        )}
+        
+        {/* Mini Studio Overlay */}
+        {isMiniStudioOpen && (
+            <MiniStudio 
+                tasks={data.daily}
+                onClose={() => setMiniStudioOpen(false)}
+                onToggleTask={(t) => handleToggleComplete(t, 'daily')}
+            />
         )}
 
       </div>
