@@ -24,6 +24,9 @@ function App() {
   // Deploy Modal State
   const [deployItem, setDeployItem] = useState<Task | null>(null);
 
+  // Battery Toast State
+  const [batteryToasts, setBatteryToasts] = useState<{id: number}[]>([]);
+
   useEffect(() => {
     setSidebarVisible(currentTab === 'daily');
     if (currentTab === 'challenge') {
@@ -54,6 +57,20 @@ function App() {
         }
     }
     setData(newData);
+  };
+
+  const handleDeleteTask = (item: Task, type: TabType) => {
+      if (window.confirm(`确定要删除 "${item.title}" 吗?`)) {
+          setData(prev => {
+              // Securely update state by filtering the specific array
+              const currentList = prev[type] as Task[];
+              const updatedList = currentList.filter(t => t.id !== item.id);
+              return {
+                  ...prev,
+                  [type]: updatedList
+              };
+          });
+      }
   };
 
   const initiateDeploy = (item: Task) => {
@@ -136,23 +153,43 @@ function App() {
 
   const handleClearCompletedDaily = () => {
       if (window.confirm("确认清理今日已完成的行程吗？")) {
-          setData(prev => ({
-              ...prev,
-              daily: prev.daily.filter(t => !t.completed)
-          }));
+          setData(prev => {
+              const activeTasks = prev.daily.filter(t => !t.completed);
+              return {
+                  ...prev,
+                  daily: activeTasks
+              };
+          });
       }
+  };
+
+  const handleHorizontalWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+      if (e.deltaY !== 0) {
+          e.currentTarget.scrollLeft += e.deltaY;
+          // Stop propagation to prevent scrolling parents in some browsers/OS
+          e.stopPropagation(); 
+      }
+  };
+
+  const handleBatteryClick = () => {
+      const id = Date.now();
+      setBatteryToasts(prev => [...prev, { id }]);
+      setTimeout(() => {
+          setBatteryToasts(prev => prev.filter(t => t.id !== id));
+      }, 1000);
   };
 
   // --- Render Helpers ---
 
   const renderGrid = (items: Task[], type: TabType) => (
-    <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4 pb-5">
+    <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3 md:gap-4 pb-5">
         {items.map(item => (
             <TaskCard 
                 key={item.id} 
                 item={item} 
                 type={type}
                 onEdit={() => handleOpenEdit(item, type)}
+                onDelete={(t) => handleDeleteTask(t, type)}
                 onAction={type === 'training' ? initiateDeploy : (t) => handleToggleComplete(t, type)}
             />
         ))}
@@ -170,7 +207,7 @@ function App() {
     // 1. ALL VIEW: Matrix Dashboard
     if (challengeFilter === 'all') {
         const renderQuadrant = (title: string, tasks: Task[], colorClass: string, borderColor: string, targetFilter: ChallengeFilter) => (
-            <div className={`flex flex-col gap-3 rounded-xl border-2 bg-[#111] p-3 ${borderColor} min-h-[200px] relative overflow-hidden group hover:bg-[#151515] transition-colors`}>
+            <div className={`flex flex-col gap-2 md:gap-3 rounded-xl border-2 bg-[#111] p-2 md:p-3 ${borderColor} min-h-[130px] md:min-h-[200px] relative overflow-hidden group hover:bg-[#151515] transition-colors`}>
                 {/* Clickable Overlay to drill down */}
                 <div 
                     className="absolute inset-0 z-0 cursor-pointer" 
@@ -178,21 +215,25 @@ function App() {
                     title="点击查看完整列表"
                 />
 
-                <div className={`flex items-center justify-between border-b border-[#333] pb-2 z-10 pointer-events-none mx-1`}>
-                    <span className={`text-lg font-black italic uppercase ${colorClass}`}>{title}</span>
-                    <span className="font-mono text-xs text-[#555]">{tasks.length} ITEMS</span>
+                <div className={`flex items-center justify-between border-b border-[#333] pb-1 md:pb-2 z-10 pointer-events-none mx-1`}>
+                    <span className={`text-sm md:text-lg font-black italic uppercase ${colorClass}`}>{title}</span>
+                    <span className="font-mono text-[9px] md:text-xs text-[#555]">{tasks.length} ITEMS</span>
                 </div>
                 
                 {/* Horizontal Scroll Container */}
-                <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 z-10 relative no-scrollbar h-full items-start px-1">
-                    {tasks.length === 0 && <div className="w-full py-8 text-center text-xs text-[#444] italic pointer-events-none">- 暂无项目 -</div>}
+                <div 
+                    className="flex flex-row gap-2 md:gap-3 overflow-x-auto pb-2 pt-1 z-10 relative no-scrollbar h-full items-start px-1"
+                    onWheel={handleHorizontalWheel}
+                >
+                    {tasks.length === 0 && <div className="w-full py-6 md:py-8 text-center text-[10px] md:text-xs text-[#444] italic pointer-events-none">- 暂无项目 -</div>}
                     {tasks.map(item => (
-                         <div key={item.id} className="shrink-0">
+                         <div key={item.id} className="shrink-0" onMouseEnter={(e) => e.stopPropagation()}>
                              <TaskCard 
                                 item={item} 
                                 type="challenge"
                                 variant="compact" // Use compact variant for matrix view
                                 onEdit={() => handleOpenEdit(item, 'challenge')}
+                                onDelete={(t) => handleDeleteTask(t, 'challenge')}
                                 onAction={(t) => handleToggleComplete(t, 'challenge')}
                             />
                          </div>
@@ -204,7 +245,7 @@ function App() {
         );
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-10 h-full overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pb-10 h-full overflow-y-auto custom-scrollbar">
                 {renderQuadrant("I. 重要且紧急", q1, "text-red-500", "border-red-900/40 hover:border-red-500/30", "q1")}
                 {renderQuadrant("II. 重要不紧急", q2, "text-zzz-blue", "border-blue-900/40 hover:border-blue-500/30", "q2")}
                 {renderQuadrant("III. 紧急不重要", q3, "text-zzz-yellow", "border-yellow-900/40 hover:border-yellow-500/30", "q3")}
@@ -284,7 +325,7 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col md:h-screen md:items-center md:justify-center bg-zzz-black p-0 md:p-4 bg-[radial-gradient(circle_at_center,#222_0%,#000_100%)] text-white">
+    <div className="flex h-[100dvh] w-full flex-col md:h-screen md:items-center md:justify-center bg-zzz-black p-0 md:p-4 bg-[radial-gradient(circle_at_center,#222_0%,#000_100%)] text-white">
       <CRTOverlay />
 
       {/* Main Device Container */}
@@ -299,6 +340,7 @@ function App() {
         {/* Top Bar */}
         <div className="z-20 mb-0 flex flex-wrap md:flex-nowrap h-auto min-h-[60px] items-end justify-between px-2 md:px-5 py-2 md:py-0 gap-2">
           <div className="flex items-end gap-1 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
+            {/* Tabs */}
             {(['daily', 'target', 'training', 'challenge'] as TabType[]).map(tab => (
               <button
                 key={tab}
@@ -309,18 +351,60 @@ function App() {
                  {getTabName(tab)}
               </button>
             ))}
+
+            {/* Mobile Utility Buttons (Placed adjacent to tabs) */}
+            <div className="md:hidden flex items-center gap-1 ml-2 pb-1 relative">
+               <div className="relative">
+                  <button 
+                      onClick={handleBatteryClick}
+                      className="flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 border-black bg-[#222] text-white shadow-[0_4px_0_#000] active:translate-y-1 active:shadow-none"
+                  >
+                      <Zap size={18} className="fill-currentColor text-white hover:text-zzz-green transition-colors" />
+                  </button>
+                  {/* Battery Toasts */}
+                  {batteryToasts.map((toast) => (
+                      <div 
+                          key={toast.id}
+                          className="absolute right-0 -bottom-10 pointer-events-none animate-out fade-out slide-out-to-bottom-4 duration-1000 whitespace-nowrap font-black italic text-zzz-green text-sm bg-black px-2 py-1 rounded border border-zzz-green shadow-[0_0_10px_#ccff00] z-50"
+                      >
+                          电量+1
+                      </div>
+                  ))}
+               </div>
+               
+               <button className="flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 border-black bg-[#a33] text-white shadow-[0_4px_0_#000] active:translate-y-1 active:shadow-none">
+                  <X size={22} strokeWidth={3} />
+               </button>
+            </div>
           </div>
 
-          <div className="mb-2.5 flex items-center gap-2 md:gap-3 ml-auto md:ml-0">
-             <div className="flex items-center gap-2 rounded-full border-2 border-[#333] bg-black px-3 md:px-4 py-1.5 shadow-inner">
+          {/* Desktop Utility Buttons (Right Aligned) */}
+          <div className="hidden md:flex mb-2.5 items-center gap-3 ml-auto relative">
+             <div className="flex items-center gap-2 rounded-full border-2 border-[#333] bg-black px-4 py-1.5 shadow-inner">
                 <AlertTriangle size={14} className="text-zzz-yellow" />
-                <span className="text-xs md:text-sm font-bold text-[#aaa]">待办: {data.daily.filter(t=>!t.completed).length}</span>
+                <span className="text-sm font-bold text-[#aaa]">待办: {data.daily.filter(t=>!t.completed).length}</span>
              </div>
-             <button className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border-2 border-black bg-[#222] text-white shadow-[0_4px_0_#000] transition-all hover:text-zzz-green active:translate-y-1 active:shadow-none">
-                <Zap size={16} className="md:w-5 md:h-5" fill="currentColor" />
-             </button>
-             <button className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border-2 border-black bg-[#a33] text-white shadow-[0_4px_0_#000] transition-all hover:bg-[#f44] active:translate-y-1 active:shadow-none">
-                <X size={20} strokeWidth={3} className="md:w-6 md:h-6" />
+             
+             <div className="relative">
+                <button 
+                    onClick={handleBatteryClick}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-[#222] text-white shadow-[0_4px_0_#000] transition-all hover:text-zzz-green active:translate-y-1 active:shadow-none"
+                >
+                    <Zap size={20} fill="currentColor" />
+                </button>
+                {/* Desktop Battery Toasts */}
+                {batteryToasts.map((toast) => (
+                    <div 
+                        key={toast.id}
+                        className="absolute right-0 -top-8 pointer-events-none animate-out fade-out slide-out-to-top-4 duration-1000 whitespace-nowrap font-black italic text-zzz-green text-sm bg-black px-2 py-1 rounded border border-zzz-green shadow-[0_0_10px_#ccff00]"
+                    >
+                        电量+1
+                    </div>
+                ))}
+             </div>
+
+             <button className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-[#a33] text-white shadow-[0_4px_0_#000] transition-all hover:bg-[#f44] active:translate-y-1 active:shadow-none">
+                <X size={24} strokeWidth={3} />
              </button>
           </div>
         </div>
@@ -395,11 +479,11 @@ function App() {
             </div>
 
             {/* Content Area */}
-            <div className="flex flex-1 flex-col overflow-hidden px-4 py-4 md:px-[30px] md:py-[20px]">
+            <div className="flex flex-1 flex-col overflow-hidden px-2 py-2 md:px-[30px] md:py-[20px]">
                 
                 {/* Mobile Filter Bar for Daily Tab */}
                 {currentTab === 'daily' && (
-                    <div className="md:hidden flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
+                    <div className="md:hidden flex gap-2 mb-2 overflow-x-auto pb-2 no-scrollbar flex-shrink-0">
                         <button
                             onClick={() => setDailyFilter('all')}
                             className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border transition-all ${dailyFilter === 'all' ? 'bg-zzz-orange text-white border-zzz-orange' : 'bg-[#111] text-[#666] border-[#333]'}`}
@@ -423,16 +507,16 @@ function App() {
                 )}
                 
                 {/* Progress Section */}
-                <div className="mb-5 rounded-2xl border-2 border-[#333] bg-[#111] p-4 md:p-5 shadow-inner">
-                    <div className="mb-2 flex items-end justify-between">
-                        <div className="text-xs font-bold text-[#888]">今日最大活跃度</div>
-                        <div className="text-xl md:text-2xl font-black italic text-white">
+                <div className="mb-3 md:mb-5 rounded-xl md:rounded-2xl border-2 border-[#333] bg-[#111] p-3 md:p-5 shadow-inner flex-shrink-0">
+                    <div className="mb-1 md:mb-2 flex items-end justify-between">
+                        <div className="text-[10px] md:text-xs font-bold text-[#888]">今日最大活跃度</div>
+                        <div className="text-lg md:text-2xl font-black italic text-white">
                             <span className="text-zzz-orange">🔥</span> {data.score}
                         </div>
                     </div>
                     
                     {/* Aligned Progress Bar */}
-                    <div className="relative mb-6 mt-6 h-3 w-full rounded-full border border-[#333] bg-[#000]">
+                    <div className="relative mb-4 md:mb-6 mt-3 md:mt-6 h-2 md:h-3 w-full rounded-full border border-[#333] bg-[#000]">
                         {/* Fill */}
                         <div 
                             className="relative h-full rounded-full bg-zzz-green shadow-[0_0_10px_#ccff00] transition-all duration-500 ease-out"
@@ -451,15 +535,15 @@ function App() {
                                     className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transform z-10"
                                     style={{ left: `${pct}%` }}
                                 >
-                                    <div className="flex flex-col items-center gap-1">
-                                        <div className={`flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full border-[3px] transition-all duration-300 shadow-lg ${reached ? 'bg-zzz-green border-[#111] shadow-[0_0_15px_#ccff00]' : 'bg-[#1a1a1a] border-[#333]'}`}>
+                                    <div className="flex flex-col items-center gap-0.5 md:gap-1">
+                                        <div className={`flex h-4 w-4 md:h-8 md:w-8 items-center justify-center rounded-full border-[2px] md:border-[3px] transition-all duration-300 shadow-lg ${reached ? 'bg-zzz-green border-[#111] shadow-[0_0_15px_#ccff00]' : 'bg-[#1a1a1a] border-[#333]'}`}>
                                             {reached ? (
-                                                <CheckCircle2 size={12} className="md:w-4 md:h-4 text-black" strokeWidth={3} />
+                                                <CheckCircle2 size={10} className="md:w-4 md:h-4 text-black" strokeWidth={3} />
                                             ) : (
-                                                <Flame size={10} className="md:w-[14px] md:h-[14px] text-[#444] fill-[#444]" />
+                                                <Flame size={8} className="md:w-[14px] md:h-[14px] text-[#444] fill-[#444]" />
                                             )}
                                         </div>
-                                        <span className={`absolute -bottom-5 md:-bottom-6 font-mono text-[8px] md:text-[10px] font-bold tracking-wider ${reached ? 'text-zzz-green' : 'text-[#444]'}`}>
+                                        <span className={`absolute -bottom-4 md:-bottom-6 font-mono text-[8px] md:text-[10px] font-bold tracking-wider ${reached ? 'text-zzz-green' : 'text-[#444]'}`}>
                                             {val}
                                         </span>
                                     </div>
@@ -470,53 +554,61 @@ function App() {
                 </div>
 
                 {/* List Header */}
-                <div className="mb-5 flex flex-col md:flex-row md:items-end justify-between border-b border-[#222] pb-2 gap-2 md:gap-0">
+                <div className="mb-3 md:mb-5 flex flex-row items-center justify-between border-b border-[#222] pb-2 gap-2 md:gap-0 flex-shrink-0">
                     <div className="flex items-end gap-4">
-                        {/* Title Logic */}
-                        {currentTab === 'challenge' ? (
+                        {/* Title Logic: Click title to return to matrix if in challenge tab */}
+                        {currentTab === 'challenge' && challengeFilter !== 'all' ? (
                              <button 
                                 onClick={() => setChallengeFilter('all')}
-                                className="group flex items-end gap-3 transition-opacity hover:opacity-80"
+                                className="group flex items-end gap-2 transition-opacity hover:opacity-80"
+                                title="点击返回四象限视图"
                              >
-                                <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight text-white drop-shadow-[2px_2px_0_black]">
+                                <h2 className="text-xl md:text-3xl font-black italic uppercase tracking-tight text-white drop-shadow-[2px_2px_0_black] cursor-pointer">
                                     {getTabLabel(currentTab)}
                                 </h2>
-                                <span className="mb-1 rounded bg-[#333] px-2 py-0.5 text-[10px] font-bold text-[#999] group-hover:bg-zzz-orange group-hover:text-black">
-                                    ↩ 返回四象限视图
+                                <span className="hidden md:inline mb-1 rounded bg-[#333] px-2 py-0.5 text-[9px] md:text-[10px] font-bold text-[#999] group-hover:bg-zzz-orange group-hover:text-black">
+                                    ↩ 返回
                                 </span>
                              </button>
                         ) : (
-                            <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight text-white drop-shadow-[2px_2px_0_black]">
-                                {getTabLabel(currentTab)} <span className="text-xs md:text-sm font-normal text-[#666] not-italic">/// LIST VIEW</span>
+                            <h2 className="text-xl md:text-3xl font-black italic uppercase tracking-tight text-white drop-shadow-[2px_2px_0_black]">
+                                {getTabLabel(currentTab)} <span className="hidden md:inline text-xs md:text-sm font-normal text-[#666] not-italic">/// LIST VIEW</span>
                             </h2>
                         )}
                     </div>
                     
-                    <div className="flex gap-2 items-center self-end md:self-auto">
-                        {/* Quadrant Controls */}
+                    <div className="flex gap-2 items-center">
+                        {/* Quadrant Controls (Only for Challenge) */}
                         {currentTab === 'challenge' && (
                             <div className="flex gap-1 md:gap-2 mr-2 md:mr-4">
                                 <button 
                                     onClick={() => setChallengeFilter('q1')} 
                                     className={`h-6 w-8 md:h-7 md:w-12 flex items-center justify-center rounded border transition-all ${challengeFilter === 'q1' ? 'bg-red-600 border-white shadow-[0_0_10px_red] scale-105' : 'bg-red-900/20 border-red-900/50 hover:bg-red-900/50 hover:border-red-500'}`} 
+                                    title="重要且紧急"
                                 >
                                     <AlertTriangle size={12} className={`md:w-[14px] md:h-[14px] ${challengeFilter === 'q1' ? 'text-white' : 'text-red-500'}`} />
                                 </button>
+                                
                                 <button 
                                     onClick={() => setChallengeFilter('q2')} 
                                     className={`h-6 w-8 md:h-7 md:w-12 flex items-center justify-center rounded border transition-all ${challengeFilter === 'q2' ? 'bg-zzz-blue border-white shadow-[0_0_10px_#00ccff] scale-105' : 'bg-blue-900/20 border-blue-900/50 hover:bg-blue-900/50 hover:border-zzz-blue'}`} 
+                                    title="重要不紧急"
                                 >
                                     <Calendar size={12} className={`md:w-[14px] md:h-[14px] ${challengeFilter === 'q2' ? 'text-black' : 'text-zzz-blue'}`} />
                                 </button>
+
                                 <button 
                                     onClick={() => setChallengeFilter('q3')} 
                                     className={`h-6 w-8 md:h-7 md:w-12 flex items-center justify-center rounded border transition-all ${challengeFilter === 'q3' ? 'bg-zzz-yellow border-white shadow-[0_0_10px_#ffcc00] scale-105' : 'bg-yellow-900/20 border-yellow-900/50 hover:bg-yellow-900/50 hover:border-zzz-yellow'}`} 
+                                    title="紧急不重要"
                                 >
                                     <Zap size={12} className={`md:w-[14px] md:h-[14px] ${challengeFilter === 'q3' ? 'text-black' : 'text-zzz-yellow'}`} />
                                 </button>
+
                                 <button 
                                     onClick={() => setChallengeFilter('q4')} 
                                     className={`h-6 w-8 md:h-7 md:w-12 flex items-center justify-center rounded border transition-all ${challengeFilter === 'q4' ? 'bg-gray-500 border-white shadow-[0_0_10px_gray] scale-105' : 'bg-gray-900/30 border-gray-800 hover:bg-gray-800 hover:border-gray-500'}`} 
+                                    title="不重要不紧急"
                                 >
                                     <Archive size={12} className={`md:w-[14px] md:h-[14px] ${challengeFilter === 'q4' ? 'text-white' : 'text-gray-500'}`} />
                                 </button>
@@ -541,16 +633,16 @@ function App() {
                                 .map(block => {
                                     const tasks = data.daily.filter(t => t.block === block);
                                     return (
-                                        <div key={block} className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="mb-3 flex items-center gap-2 border-b border-[#222] pb-1">
-                                                <div className={`h-2 w-2 rounded-sm ${block === 'morning' ? 'bg-yellow-500' : block === 'afternoon' ? 'bg-orange-500' : 'bg-blue-500'}`} />
-                                                <div className="text-xs font-black tracking-widest text-[#666]">
+                                        <div key={block} className="mb-6 md:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="mb-2 md:mb-3 flex items-center gap-2 border-b border-[#222] pb-1">
+                                                <div className={`h-1.5 w-1.5 md:h-2 md:w-2 rounded-sm ${block === 'morning' ? 'bg-yellow-500' : block === 'afternoon' ? 'bg-orange-500' : 'bg-blue-500'}`} />
+                                                <div className="text-[10px] md:text-xs font-black tracking-widest text-[#666]">
                                                     {getBlockName(block).toUpperCase()}
                                                 </div>
                                             </div>
                                             
                                             {tasks.length === 0 ? (
-                                                <div className="flex h-20 md:h-24 items-center justify-center rounded-xl border-2 border-dashed border-[#222] bg-[#0a0a0a] text-xs font-bold text-[#333]">
+                                                <div className="flex h-16 md:h-24 items-center justify-center rounded-xl border-2 border-dashed border-[#222] bg-[#0a0a0a] text-[10px] md:text-xs font-bold text-[#333]">
                                                     - 空闲 -
                                                 </div>
                                             ) : (
